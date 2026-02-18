@@ -1,0 +1,1752 @@
+{
+  "specVersion": "1.1",
+  "defaults": {
+    "idType": "String",
+    "idStrategy": "UUID",
+    "softDelete": true,
+    "auditFields": [
+      "createdAt",
+      "updatedAt"
+    ],
+    "permsPattern": "{module}:{resource}:{action}"
+  },
+  "enums": {
+    "UserType": [
+      {
+        "value": "ADMIN",
+        "comment": "后台管理用户"
+      },
+      {
+        "value": "CUSTOMER",
+        "comment": "C端注册用户"
+      }
+    ],
+    "UserStatus": [
+      {
+        "value": "ACTIVE",
+        "comment": "正常"
+      },
+      {
+        "value": "LOCKED",
+        "comment": "锁定"
+      },
+      {
+        "value": "DISABLED",
+        "comment": "禁用"
+      }
+    ],
+    "BasicStatus": [
+      {
+        "value": "ENABLE",
+        "comment": "正常"
+      },
+      {
+        "value": "DISABLE",
+        "comment": "禁用"
+      }
+    ],
+    "PermType": [
+      {
+        "value": "API",
+        "comment": "接口权限点"
+      },
+      {
+        "value": "PAGE",
+        "comment": "页面/路由(可选)"
+      },
+      {
+        "value": "ACTION",
+        "comment": "按钮/动作(可选)"
+      }
+    ],
+    "TextMode": [
+      { "value": "ZH2EN", "comment": "中文转英文" },
+      { "value": "EN2ZH", "comment": "英文转中文" }
+    ]
+  },
+  "entities": [
+    {
+      "className": "SysUser",
+      "tableName": "t_sys_user",
+      "moduleName": "sys",
+      "comment": "统一用户(ADMIN + CUSTOMER)",
+      "znName": "用户",
+      "generateRepository": true,
+      "generateService": true,
+      "tenantMode": "NONE",
+      "fields": [
+        {
+          "name": "userType",
+          "type": "enum",
+          "enumName": "UserType",
+          "notNull": true,
+          "comment": "用户类型"
+        },
+        {
+          "name": "username",
+          "type": "String",
+          "length": 64,
+          "notNull": true,
+          "comment": "用户名(唯一)"
+        },
+        {
+          "name": "password",
+          "type": "String",
+          "length": 128,
+          "notNull": true,
+          "comment": "密码(加密存储)"
+        },
+        {
+          "name": "passwordSalt",
+          "type": "String",
+          "length": 64,
+          "notNull": false,
+          "comment": "密码盐值(可选)"
+        },
+        {
+          "name": "nickName",
+          "type": "String",
+          "length": 64,
+          "notNull": false,
+          "comment": "昵称"
+        },
+        {
+          "name": "phone",
+          "type": "String",
+          "length": 20,
+          "notNull": false,
+          "comment": "手机号"
+        },
+        {
+          "name": "email",
+          "type": "String",
+          "length": 128,
+          "notNull": false,
+          "comment": "邮箱"
+        },
+        {
+          "name": "avatar",
+          "type": "String",
+          "length": 255,
+          "notNull": false,
+          "comment": "头像URL"
+        },
+        {
+          "name": "status",
+          "type": "enum",
+          "enumName": "UserStatus",
+          "notNull": true,
+          "comment": "状态"
+        },
+        {
+          "name": "lastLoginIp",
+          "type": "String",
+          "length": 64,
+          "notNull": false,
+          "comment": "最后登录IP"
+        },
+        {
+          "name": "lastLoginTime",
+          "type": "LocalDateTime",
+          "notNull": false,
+          "comment": "最后登录时间"
+        },
+        {
+          "name": "pwdResetTime",
+          "type": "LocalDateTime",
+          "notNull": false,
+          "comment": "密码最后修改时间"
+        },
+        {
+          "name": "remark",
+          "type": "String",
+          "length": 255,
+          "notNull": false,
+          "comment": "备注"
+        }
+      ],
+      "uniqueConstraints": [
+        {
+          "name": "uk_sys_user_username",
+          "columns": [
+            "username"
+          ],
+          "uniqueScope": "GLOBAL"
+        }
+      ],
+      "apis": [
+        {
+          "name": "register",
+          "summary": "C端注册(创建 CUSTOMER)",
+          "path": "/register",
+          "paramMode": "CUSTOM",
+          "dtoName": "CustomerRegisterReq",
+          "tenantRequired": false,
+          "requiredPerms": [],
+          "params": [
+            {
+              "name": "username",
+              "type": "String",
+              "required": true,
+              "comment": "用户名"
+            },
+            {
+              "name": "password",
+              "type": "String",
+              "required": true,
+              "comment": "密码"
+            },
+            {
+              "name": "email",
+              "type": "String",
+              "required": false,
+              "comment": "邮箱"
+            },
+            {
+              "name": "phone",
+              "type": "String",
+              "required": false,
+              "comment": "手机号"
+            },
+            {
+              "name": "nickName",
+              "type": "String",
+              "required": false,
+              "comment": "昵称"
+            }
+          ]
+        },
+        {
+          "name": "login",
+          "summary": "C端登录(只允许 CUSTOMER)",
+          "path": "/login",
+          "paramMode": "CUSTOM",
+          "dtoName": "CustomerLoginReq",
+          "tenantRequired": false,
+          "requiredPerms": [],
+          "params": [
+            {
+              "name": "username",
+              "type": "String",
+              "required": true,
+              "comment": "用户名"
+            },
+            {
+              "name": "password",
+              "type": "String",
+              "required": true,
+              "comment": "密码"
+            }
+          ]
+        },
+        {
+          "name": "adminLogin",
+          "summary": "后台登录(只允许 ADMIN)",
+          "path": "/adminLogin",
+          "paramMode": "CUSTOM",
+          "dtoName": "AdminLoginReq",
+          "tenantRequired": false,
+          "requiredPerms": [],
+          "params": [
+            {
+              "name": "username",
+              "type": "String",
+              "required": true,
+              "comment": "用户名"
+            },
+            {
+              "name": "password",
+              "type": "String",
+              "required": true,
+              "comment": "密码"
+            }
+          ]
+        },
+        {
+          "name": "logout",
+          "summary": "退出登录",
+          "path": "/logout",
+          "paramMode": "CUSTOM",
+          "dtoName": "LogoutReq",
+          "tenantRequired": false,
+          "requiredPerms": [],
+          "params": []
+        },
+        {
+          "name": "me",
+          "summary": "获取当前用户信息",
+          "path": "/me",
+          "paramMode": "CUSTOM",
+          "dtoName": "MeReq",
+          "tenantRequired": false,
+          "requiredPerms": [],
+          "params": []
+        },
+        {
+          "name": "updateProfile",
+          "summary": "更新个人资料(本人)",
+          "path": "/profile",
+          "paramMode": "CUSTOM",
+          "dtoName": "UserProfileUpdateReq",
+          "tenantRequired": false,
+          "requiredPerms": [],
+          "params": [
+            {
+              "name": "nickName",
+              "type": "String",
+              "required": false,
+              "comment": "昵称"
+            },
+            {
+              "name": "avatar",
+              "type": "String",
+              "required": false,
+              "comment": "头像URL"
+            },
+            {
+              "name": "email",
+              "type": "String",
+              "required": false,
+              "comment": "邮箱"
+            },
+            {
+              "name": "phone",
+              "type": "String",
+              "required": false,
+              "comment": "手机号"
+            }
+          ]
+        },
+        {
+          "name": "changeMyPassword",
+          "summary": "修改密码(本人)",
+          "path": "/changeMyPassword",
+          "paramMode": "CUSTOM",
+          "dtoName": "UserChangeMyPasswordReq",
+          "tenantRequired": false,
+          "requiredPerms": [],
+          "params": [
+            {
+              "name": "oldPassword",
+              "type": "String",
+              "required": true,
+              "comment": "旧密码"
+            },
+            {
+              "name": "newPassword",
+              "type": "String",
+              "required": true,
+              "comment": "新密码"
+            }
+          ]
+        },
+        {
+          "name": "paging",
+          "summary": "分页查询(后台)",
+          "path": "/paging",
+          "paramMode": "QUERY",
+          "tenantRequired": false,
+          "requiredPerms": [
+            "sys:user:read"
+          ]
+        },
+        {
+          "name": "save",
+          "summary": "新增用户(后台)",
+          "path": "/save",
+          "paramMode": "ENTITY",
+          "tenantRequired": false,
+          "requiredPerms": [
+            "sys:user:create"
+          ]
+        },
+        {
+          "name": "update",
+          "summary": "修改用户(后台)",
+          "path": "/update",
+          "paramMode": "ENTITY",
+          "tenantRequired": false,
+          "requiredPerms": [
+            "sys:user:update"
+          ]
+        },
+        {
+          "name": "delete",
+          "summary": "删除用户(后台)",
+          "path": "/delete",
+          "paramMode": "IDS",
+          "tenantRequired": false,
+          "requiredPerms": [
+            "sys:user:delete"
+          ]
+        },
+        {
+          "name": "resetPwd",
+          "summary": "重置密码(后台)",
+          "path": "/resetPwd",
+          "paramMode": "CUSTOM",
+          "dtoName": "UserResetPwdReq",
+          "tenantRequired": false,
+          "requiredPerms": [
+            "sys:user:update"
+          ],
+          "params": [
+            {
+              "name": "userId",
+              "type": "String",
+              "required": true,
+              "comment": "用户ID"
+            },
+            {
+              "name": "password",
+              "type": "String",
+              "required": true,
+              "comment": "新密码"
+            }
+          ]
+        },
+        {
+          "name": "changeStatus",
+          "summary": "修改用户状态(后台)",
+          "path": "/changeStatus",
+          "paramMode": "CUSTOM",
+          "dtoName": "UserStatusReq",
+          "tenantRequired": false,
+          "requiredPerms": [
+            "sys:user:update"
+          ],
+          "params": [
+            {
+              "name": "userId",
+              "type": "String",
+              "required": true,
+              "comment": "用户ID"
+            },
+            {
+              "name": "status",
+              "type": "enum",
+              "enumName": "UserStatus",
+              "required": true,
+              "comment": "状态"
+            }
+          ]
+        },
+        {
+          "name": "myPerms",
+          "summary": "当前用户权限点列表(后台用)",
+          "path": "/myPerms",
+          "paramMode": "CUSTOM",
+          "dtoName": "MyPermsReq",
+          "tenantRequired": false,
+          "requiredPerms": [],
+          "params": []
+        }
+      ]
+    },
+    {
+      "className": "SysRole",
+      "tableName": "t_sys_role",
+      "moduleName": "sys",
+      "comment": "角色(RBAC)",
+      "znName": "角色管理",
+      "generateRepository": true,
+      "generateService": true,
+      "tenantMode": "NONE",
+      "fields": [
+        {
+          "name": "roleName",
+          "type": "String",
+          "length": 64,
+          "notNull": true,
+          "comment": "角色名称"
+        },
+        {
+          "name": "roleKey",
+          "type": "String",
+          "length": 64,
+          "notNull": true,
+          "comment": "角色标识(唯一，如ADMIN/OP)"
+        },
+        {
+          "name": "sort",
+          "type": "Integer",
+          "notNull": true,
+          "comment": "显示顺序"
+        },
+        {
+          "name": "status",
+          "type": "enum",
+          "enumName": "BasicStatus",
+          "notNull": true,
+          "comment": "状态"
+        },
+        {
+          "name": "remark",
+          "type": "String",
+          "length": 255,
+          "notNull": false,
+          "comment": "备注"
+        }
+      ],
+      "uniqueConstraints": [
+        {
+          "name": "uk_sys_role_rolekey",
+          "columns": [
+            "roleKey"
+          ],
+          "uniqueScope": "GLOBAL"
+        }
+      ],
+      "apis": [
+        {
+          "name": "save",
+          "summary": "新增角色",
+          "path": "/save",
+          "paramMode": "ENTITY",
+          "tenantRequired": false,
+          "requiredPerms": [
+            "sys:role:create"
+          ]
+        },
+        {
+          "name": "update",
+          "summary": "修改角色",
+          "path": "/update",
+          "paramMode": "ENTITY",
+          "tenantRequired": false,
+          "requiredPerms": [
+            "sys:role:update"
+          ]
+        },
+        {
+          "name": "delete",
+          "summary": "删除角色",
+          "path": "/delete",
+          "paramMode": "IDS",
+          "tenantRequired": false,
+          "requiredPerms": [
+            "sys:role:delete"
+          ]
+        },
+        {
+          "name": "paging",
+          "summary": "分页查询",
+          "path": "/paging",
+          "paramMode": "QUERY",
+          "tenantRequired": false,
+          "requiredPerms": [
+            "sys:role:read"
+          ]
+        },
+        {
+          "name": "grantPerms",
+          "summary": "角色授权权限点(全量覆盖)",
+          "path": "/grantPerms",
+          "paramMode": "CUSTOM",
+          "dtoName": "RolePermGrantReq",
+          "tenantRequired": false,
+          "requiredPerms": [
+            "sys:role:update"
+          ],
+          "params": [
+            {
+              "name": "roleId",
+              "type": "String",
+              "required": true,
+              "comment": "角色ID"
+            },
+            {
+              "name": "permIds",
+              "type": "List<String>",
+              "required": true,
+              "comment": "权限点ID列表"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "className": "SysPermission",
+      "tableName": "t_sys_permission",
+      "moduleName": "sys",
+      "comment": "权限点(接口/页面/动作)",
+      "znName": "权限点",
+      "generateRepository": true,
+      "generateService": true,
+      "tenantMode": "NONE",
+      "fields": [
+        {
+          "name": "permKey",
+          "type": "String",
+          "length": 128,
+          "notNull": true,
+          "comment": "权限标识(唯一，如sys:user:read)"
+        },
+        {
+          "name": "permName",
+          "type": "String",
+          "length": 128,
+          "notNull": true,
+          "comment": "权限名称"
+        },
+        {
+          "name": "permType",
+          "type": "enum",
+          "enumName": "PermType",
+          "notNull": true,
+          "comment": "权限类型"
+        },
+        {
+          "name": "module",
+          "type": "String",
+          "length": 64,
+          "notNull": false,
+          "comment": "模块(如sys)"
+        },
+        {
+          "name": "resource",
+          "type": "String",
+          "length": 64,
+          "notNull": false,
+          "comment": "资源(如user)"
+        },
+        {
+          "name": "action",
+          "type": "String",
+          "length": 64,
+          "notNull": false,
+          "comment": "动作(如read)"
+        },
+        {
+          "name": "status",
+          "type": "enum",
+          "enumName": "BasicStatus",
+          "notNull": true,
+          "comment": "状态"
+        },
+        {
+          "name": "remark",
+          "type": "String",
+          "length": 255,
+          "notNull": false,
+          "comment": "备注"
+        }
+      ],
+      "uniqueConstraints": [
+        {
+          "name": "uk_sys_permission_permkey",
+          "columns": [
+            "permKey"
+          ],
+          "uniqueScope": "GLOBAL"
+        }
+      ],
+      "apis": [
+        {
+          "name": "save",
+          "summary": "新增权限点",
+          "path": "/save",
+          "paramMode": "ENTITY",
+          "tenantRequired": false,
+          "requiredPerms": [
+            "sys:perm:create"
+          ]
+        },
+        {
+          "name": "update",
+          "summary": "修改权限点",
+          "path": "/update",
+          "paramMode": "ENTITY",
+          "tenantRequired": false,
+          "requiredPerms": [
+            "sys:perm:update"
+          ]
+        },
+        {
+          "name": "delete",
+          "summary": "删除权限点",
+          "path": "/delete",
+          "paramMode": "IDS",
+          "tenantRequired": false,
+          "requiredPerms": [
+            "sys:perm:delete"
+          ]
+        },
+        {
+          "name": "paging",
+          "summary": "分页查询",
+          "path": "/paging",
+          "paramMode": "QUERY",
+          "tenantRequired": false,
+          "requiredPerms": [
+            "sys:perm:read"
+          ]
+        }
+      ]
+    },
+    {
+      "className": "SysUserRole",
+      "tableName": "t_sys_user_role",
+      "moduleName": "sys",
+      "comment": "用户-角色关联(建议仅 ADMIN 使用)",
+      "znName": "用户角色关联",
+      "generateRepository": true,
+      "generateService": true,
+      "tenantMode": "NONE",
+      "fields": [
+        {
+          "name": "userId",
+          "type": "String",
+          "notNull": true,
+          "comment": "用户ID"
+        },
+        {
+          "name": "roleId",
+          "type": "String",
+          "notNull": true,
+          "comment": "角色ID"
+        }
+      ],
+      "uniqueConstraints": [
+        {
+          "name": "uk_sys_user_role",
+          "columns": [
+            "userId",
+            "roleId"
+          ],
+          "uniqueScope": "GLOBAL"
+        }
+      ],
+      "apis": [
+        {
+          "name": "paging",
+          "summary": "分页查询",
+          "path": "/paging",
+          "paramMode": "QUERY",
+          "tenantRequired": false,
+          "requiredPerms": [
+            "sys:user_role:read"
+          ]
+        },
+        {
+          "name": "assignRoles",
+          "summary": "给用户分配角色(全量覆盖)",
+          "path": "/assignRoles",
+          "paramMode": "CUSTOM",
+          "dtoName": "UserRoleAssignReq",
+          "tenantRequired": false,
+          "requiredPerms": [
+            "sys:user_role:update"
+          ],
+          "params": [
+            {
+              "name": "userId",
+              "type": "String",
+              "required": true,
+              "comment": "用户ID"
+            },
+            {
+              "name": "roleIds",
+              "type": "List<String>",
+              "required": true,
+              "comment": "角色ID列表"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "className": "SysRolePermission",
+      "tableName": "t_sys_role_permission",
+      "moduleName": "sys",
+      "comment": "角色-权限点关联",
+      "znName": "角色权限关联",
+      "generateRepository": true,
+      "generateService": true,
+      "tenantMode": "NONE",
+      "fields": [
+        {
+          "name": "roleId",
+          "type": "String",
+          "notNull": true,
+          "comment": "角色ID"
+        },
+        {
+          "name": "permId",
+          "type": "String",
+          "notNull": true,
+          "comment": "权限点ID"
+        }
+      ],
+      "uniqueConstraints": [
+        {
+          "name": "uk_sys_role_permission",
+          "columns": [
+            "roleId",
+            "permId"
+          ],
+          "uniqueScope": "GLOBAL"
+        }
+      ],
+      "apis": [
+        {
+          "name": "paging",
+          "summary": "分页查询",
+          "path": "/paging",
+          "paramMode": "QUERY",
+          "tenantRequired": false,
+          "requiredPerms": [
+            "sys:role_perm:read"
+          ]
+        }
+      ]
+    },
+    {
+      "className": "CntScenario",
+      "tableName": "t_cnt_scenario",
+      "moduleName": "content",
+      "comment": "公共场景（Prompt模板 + 默认关键字）",
+      "znName": "场景",
+      "tenantMode": "NONE",
+      "fields": [
+        {
+          "name": "code",
+          "type": "String",
+          "length": 64,
+          "notNull": true,
+          "comment": "场景编码(唯一)"
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "length": 128,
+          "notNull": true,
+          "comment": "场景名称"
+        },
+        {
+          "name": "promptTemplate",
+          "type": "String",
+          "notNull": true,
+          "comment": "Prompt模板：支持 {text} + {keyword}"
+        },
+        {
+          "name": "defaultKeywords",
+          "type": "Json",
+          "notNull": false,
+          "comment": "默认关键字(JSON)：如 {\"tone\":\"reddit\"}"
+        },
+        {
+          "name": "status",
+          "type": "enum",
+          "enumName": "BasicStatus",
+          "notNull": true,
+          "comment": "状态"
+        },
+        {
+          "name": "remark",
+          "type": "String",
+          "length": 255,
+          "notNull": false,
+          "comment": "备注"
+        }
+      ],
+      "uniqueConstraints": [
+        {
+          "name": "uk_cnt_scenario_code",
+          "columns": [
+            "code"
+          ],
+          "uniqueScope": "GLOBAL"
+        }
+      ],
+      "apis": [
+        {
+          "name": "list",
+          "summary": "场景列表(登录)",
+          "path": "/list",
+          "paramMode": "ENTITY",
+          "tenantRequired": false,
+          "requiredPerms": [],
+          "authRequired": true
+        },
+        {
+          "name": "rewrite",
+          "summary": "改写/生成(LangGraph编排)",
+          "path": "/rewrite",
+          "paramMode": "CUSTOM",
+          "dtoName": "RewriteReq",
+          "tenantRequired": false,
+          "requiredPerms": [],
+          "authRequired": true,
+          "params": [
+            {
+              "name": "text",
+              "type": "String",
+              "required": true,
+              "comment": "原文"
+            },
+            {
+              "name": "scenarioCode",
+              "type": "String",
+              "required": true,
+              "comment": "场景编码"
+            },
+            {
+              "name": "extraKeywords",
+              "type": "Json",
+              "required": false,
+              "comment": "本次临时关键字覆盖(JSON)"
+            }
+          ]
+        },
+        {
+          "name": "myKeywords",
+          "summary": "我的关键字(登录)",
+          "path": "/myKeywords",
+          "paramMode": "CUSTOM",
+          "dtoName": "MyKeywordsReq",
+          "tenantRequired": false,
+          "requiredPerms": [],
+          "authRequired": true,
+          "params": [
+            {
+              "name": "scenarioCode",
+              "type": "String",
+              "required": true,
+              "comment": "场景编码"
+            }
+          ]
+        },
+        {
+          "name": "setMyKeywords",
+          "summary": "设置我的关键字(全量覆盖)",
+          "path": "/setMyKeywords",
+          "paramMode": "CUSTOM",
+          "dtoName": "SetMyKeywordsReq",
+          "tenantRequired": false,
+          "requiredPerms": [],
+          "authRequired": true,
+          "params": [
+            {
+              "name": "scenarioCode",
+              "type": "String",
+              "required": true,
+              "comment": "场景编码"
+            },
+            {
+              "name": "keywords",
+              "type": "Json",
+              "required": true,
+              "comment": "关键字JSON：{\"tone\":\"...\"}"
+            }
+          ]
+        },
+        {
+          "name": "deleteMyKeywords",
+          "summary": "删除我的关键字(按keys)",
+          "path": "/deleteMyKeywords",
+          "paramMode": "CUSTOM",
+          "dtoName": "DeleteMyKeywordsReq",
+          "tenantRequired": false,
+          "requiredPerms": [],
+          "authRequired": true,
+          "params": [
+            {
+              "name": "scenarioCode",
+              "type": "String",
+              "required": true,
+              "comment": "场景编码"
+            },
+            {
+              "name": "keys",
+              "type": "List<String>",
+              "required": true,
+              "comment": "要删除的key列表"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "className": "CntUserKeyword",
+      "tableName": "t_cnt_user_keyword",
+      "moduleName": "content",
+      "comment": "用户自定义关键字(覆盖默认)",
+      "znName": "用户关键字",
+      "tenantMode": "NONE",
+      "fields": [
+        {
+          "name": "userId",
+          "type": "String",
+          "length": 64,
+          "notNull": true,
+          "comment": "用户ID"
+        },
+        {
+          "name": "scenarioCode",
+          "type": "String",
+          "length": 64,
+          "notNull": true,
+          "comment": "场景编码"
+        },
+        {
+          "name": "key",
+          "type": "String",
+          "length": 64,
+          "notNull": true,
+          "comment": "关键字key"
+        },
+        {
+          "name": "value",
+          "type": "String",
+          "notNull": true,
+          "comment": "关键字value"
+        }
+      ],
+      "uniqueConstraints": [
+        {
+          "name": "uk_cnt_user_keyword",
+          "columns": [
+            "userId",
+            "scenarioCode",
+            "key"
+          ],
+          "uniqueScope": "GLOBAL"
+        }
+      ],
+      "apis": []
+    },
+    {
+      "className": "CntRewriteHistory",
+      "tableName": "t_cnt_rewrite_history",
+      "moduleName": "content",
+      "comment": "改写历史(按用户)",
+      "znName": "改写历史",
+      "tenantMode": "NONE",
+      "fields": [
+        {
+          "name": "userId",
+          "type": "String",
+          "length": 64,
+          "notNull": true,
+          "comment": "用户ID"
+        },
+        {
+          "name": "scenarioCode",
+          "type": "String",
+          "length": 64,
+          "notNull": true,
+          "comment": "场景编码"
+        },
+        {
+          "name": "inputText",
+          "type": "String",
+          "notNull": true,
+          "comment": "输入"
+        },
+        {
+          "name": "prompt",
+          "type": "String",
+          "notNull": true,
+          "comment": "最终Prompt"
+        },
+        {
+          "name": "outputText",
+          "type": "String",
+          "notNull": true,
+          "comment": "输出"
+        },
+        {
+          "name": "usage",
+          "type": "Json",
+          "notNull": false,
+          "comment": "用量(JSON)"
+        }
+      ],
+      "uniqueConstraints": [],
+      "apis": []
+    },
+    {
+      "className": "CntDailyUsage",
+      "tableName": "t_cnt_daily_usage",
+      "moduleName": "content",
+      "comment": "每日用量(用于限额/计费)",
+      "znName": "每日用量",
+      "tenantMode": "NONE",
+      "fields": [
+        {
+          "name": "userId",
+          "type": "String",
+          "length": 64,
+          "notNull": true,
+          "comment": "用户ID"
+        },
+        {
+          "name": "yyyymmdd",
+          "type": "String",
+          "length": 8,
+          "notNull": true,
+          "comment": "日期(YYYYMMDD)"
+        },
+        {
+          "name": "requests",
+          "type": "Integer",
+          "notNull": true,
+          "defaultValue": "0",
+          "comment": "请求次数"
+        },
+        {
+          "name": "tokens",
+          "type": "Integer",
+          "notNull": true,
+          "defaultValue": "0",
+          "comment": "Token累计"
+        }
+      ],
+      "uniqueConstraints": [
+        {
+          "name": "uk_cnt_daily_usage",
+          "columns": [
+            "userId",
+            "yyyymmdd"
+          ],
+          "uniqueScope": "GLOBAL"
+        }
+      ],
+      "apis": []
+    },
+    {
+      "className": "CntFeature",
+      "tableName": "t_cnt_feature",
+      "moduleName": "content",
+      "comment": "功能配置(场景/平台) - 对外返回 features JSON",
+      "znName": "功能配置",
+      "fields": [
+        {
+          "name": "code",
+          "type": "String",
+          "length": 64,
+          "notNull": true,
+          "comment": "对外功能ID，如 en2zh_understand"
+        },
+        {
+          "name": "platformZh",
+          "type": "String",
+          "length": 64,
+          "notNull": true,
+          "comment": "平台中文名"
+        },
+        {
+          "name": "badgeZh",
+          "type": "String",
+          "length": 64,
+          "notNull": false,
+          "comment": "徽标/标签"
+        },
+        {
+          "name": "titleZh",
+          "type": "String",
+          "length": 128,
+          "notNull": true,
+          "comment": "标题"
+        },
+        {
+          "name": "mode",
+          "type": "enum",
+          "enumName": "TextMode",
+          "notNull": true,
+          "comment": "ZH2EN/EN2ZH"
+        },
+        {
+          "name": "inputLabel",
+          "type": "String",
+          "length": 64,
+          "notNull": true,
+          "comment": "输入框标签"
+        },
+        {
+          "name": "placeholder",
+          "type": "String",
+          "length": 255,
+          "notNull": false,
+          "comment": "输入框占位"
+        },
+        {
+          "name": "contextHint",
+          "type": "String",
+          "length": 255,
+          "notNull": false,
+          "comment": "上下文提示"
+        },
+        {
+          "name": "tones",
+          "type": "Json",
+          "notNull": true,
+          "comment": "语气数组 Json: [{id,zh}]"
+        },
+        {
+          "name": "maxOutputTokens",
+          "type": "Integer",
+          "notNull": true,
+          "defaultValue": 520,
+          "comment": "最大输出token"
+        },
+        {
+          "name": "actionLabel",
+          "type": "String",
+          "length": 64,
+          "notNull": true,
+          "comment": "按钮文案"
+        },
+        {
+          "name": "sort",
+          "type": "Integer",
+          "notNull": true,
+          "defaultValue": 100,
+          "comment": "排序"
+        },
+        {
+          "name": "status",
+          "type": "enum",
+          "enumName": "BasicStatus",
+          "notNull": true,
+          "comment": "状态"
+        },
+        {
+          "name": "isVisible",
+          "type": "Boolean",
+          "notNull": true,
+          "defaultValue": true,
+          "comment": "是否对外可见"
+        },
+        {
+          "name": "remark",
+          "type": "String",
+          "length": 255,
+          "notNull": false,
+          "comment": "备注"
+        }
+      ],
+      "uniqueConstraints": [
+        {
+          "name": "uk_cnt_feature_code",
+          "columns": [
+            "code"
+          ],
+          "uniqueScope": "GLOBAL"
+        }
+      ],
+      "apis": [
+        {
+          "name": "features",
+          "summary": "获取功能列表(登录即可，无需权限)",
+          "path": "/features",
+          "paramMode": "CUSTOM",
+          "dtoName": "FeaturesReq",
+          "authRequired": true,
+          "requiredPerms": [],
+          "params": []
+        },
+        {
+          "name": "paging",
+          "summary": "分页查询(后台)",
+          "path": "/paging",
+          "paramMode": "QUERY",
+          "authRequired": true,
+          "requiredPerms": [
+            "content:feature:read"
+          ]
+        },
+        {
+          "name": "save",
+          "summary": "新增(后台)",
+          "path": "/save",
+          "paramMode": "ENTITY",
+          "authRequired": true,
+          "requiredPerms": [
+            "content:feature:create"
+          ]
+        },
+        {
+          "name": "update",
+          "summary": "修改(后台)",
+          "path": "/update",
+          "paramMode": "ENTITY",
+          "authRequired": true,
+          "requiredPerms": [
+            "content:feature:update"
+          ]
+        },
+        {
+          "name": "delete",
+          "summary": "删除(后台)",
+          "path": "/delete",
+          "paramMode": "IDS",
+          "authRequired": true,
+          "requiredPerms": [
+            "content:feature:delete"
+          ]
+        }
+      ]
+    },
+    {
+      "className": "CntDefaultKeyword",
+      "tableName": "t_cnt_default_keyword",
+      "moduleName": "content",
+      "comment": "默认关键词(全局/按功能)",
+      "znName": "默认关键词",
+      "fields": [
+        {
+          "name": "featureCode",
+          "type": "String",
+          "length": 64,
+          "notNull": false,
+          "comment": "功能code，空=全局"
+        },
+        {
+          "name": "keyword",
+          "type": "String",
+          "length": 64,
+          "notNull": true,
+          "comment": "关键词，如 prompt"
+        },
+        {
+          "name": "value",
+          "type": "String",
+          "length": 255,
+          "notNull": true,
+          "comment": "默认值/替换内容"
+        },
+        {
+          "name": "sort",
+          "type": "Integer",
+          "notNull": true,
+          "defaultValue": 100,
+          "comment": "排序"
+        },
+        {
+          "name": "status",
+          "type": "enum",
+          "enumName": "BasicStatus",
+          "notNull": true,
+          "comment": "状态"
+        },
+        {
+          "name": "remark",
+          "type": "String",
+          "length": 255,
+          "notNull": false,
+          "comment": "备注"
+        }
+      ],
+      "uniqueConstraints": [
+        {
+          "name": "uk_cnt_default_kw",
+          "columns": [
+            "featureCode",
+            "keyword"
+          ],
+          "uniqueScope": "GLOBAL"
+        }
+      ],
+      "apis": [
+        {
+          "name": "paging",
+          "summary": "分页查询(后台)",
+          "path": "/paging",
+          "paramMode": "QUERY",
+          "authRequired": true,
+          "requiredPerms": [
+            "content:keyword:read"
+          ]
+        },
+        {
+          "name": "save",
+          "summary": "新增(后台)",
+          "path": "/save",
+          "paramMode": "ENTITY",
+          "authRequired": true,
+          "requiredPerms": [
+            "content:keyword:create"
+          ]
+        },
+        {
+          "name": "update",
+          "summary": "修改(后台)",
+          "path": "/update",
+          "paramMode": "ENTITY",
+          "authRequired": true,
+          "requiredPerms": [
+            "content:keyword:update"
+          ]
+        },
+        {
+          "name": "delete",
+          "summary": "删除(后台)",
+          "path": "/delete",
+          "paramMode": "IDS",
+          "authRequired": true,
+          "requiredPerms": [
+            "content:keyword:delete"
+          ]
+        }
+      ]
+    },
+    {
+      "className": "CntUserKeyword",
+      "tableName": "t_cnt_user_keyword",
+      "moduleName": "content",
+      "comment": "用户自定义关键词(覆盖默认)",
+      "znName": "用户关键词",
+      "fields": [
+        {
+          "name": "userId",
+          "type": "String",
+          "length": 64,
+          "notNull": true,
+          "comment": "用户ID"
+        },
+        {
+          "name": "featureCode",
+          "type": "String",
+          "length": 64,
+          "notNull": false,
+          "comment": "功能code，空=全局"
+        },
+        {
+          "name": "keyword",
+          "type": "String",
+          "length": 64,
+          "notNull": true,
+          "comment": "关键词"
+        },
+        {
+          "name": "value",
+          "type": "String",
+          "length": 255,
+          "notNull": true,
+          "comment": "用户自定义值"
+        },
+        {
+          "name": "status",
+          "type": "enum",
+          "enumName": "BasicStatus",
+          "notNull": true,
+          "comment": "状态"
+        },
+        {
+          "name": "remark",
+          "type": "String",
+          "length": 255,
+          "notNull": false,
+          "comment": "备注"
+        }
+      ],
+      "uniqueConstraints": [
+        {
+          "name": "uk_cnt_user_kw",
+          "columns": [
+            "userId",
+            "featureCode",
+            "keyword"
+          ],
+          "uniqueScope": "GLOBAL"
+        }
+      ],
+      "apis": [
+        {
+          "name": "myKeywords",
+          "summary": "获取我的关键词(登录即可)",
+          "path": "/myKeywords",
+          "paramMode": "CUSTOM",
+          "dtoName": "MyKeywordsReq",
+          "authRequired": true,
+          "requiredPerms": [],
+          "params": [
+            {
+              "name": "featureCode",
+              "type": "String",
+              "required": false,
+              "comment": "可选：只取某功能"
+            }
+          ]
+        },
+        {
+          "name": "upsertMyKeywords",
+          "summary": "批量覆盖我的关键词(登录即可)",
+          "path": "/upsertMyKeywords",
+          "paramMode": "CUSTOM",
+          "dtoName": "UpsertMyKeywordsReq",
+          "authRequired": true,
+          "requiredPerms": [],
+          "params": [
+            {
+              "name": "featureCode",
+              "type": "String",
+              "required": false,
+              "comment": "可选：空=全局"
+            },
+            {
+              "name": "items",
+              "type": "Json",
+              "required": true,
+              "comment": "数组：[{keyword,value,status}]"
+            }
+          ]
+        },
+        {
+          "name": "paging",
+          "summary": "分页查询(后台)",
+          "path": "/paging",
+          "paramMode": "QUERY",
+          "authRequired": true,
+          "requiredPerms": [
+            "content:user_keyword:read"
+          ]
+        }
+      ]
+    },
+    {
+      "className": "CntPromptTemplate",
+      "tableName": "t_cnt_prompt_template",
+      "moduleName": "content",
+      "comment": "Prompt模板(按功能+版本)",
+      "znName": "Prompt模板",
+      "fields": [
+        {
+          "name": "featureCode",
+          "type": "String",
+          "length": 64,
+          "notNull": true,
+          "comment": "功能code"
+        },
+        {
+          "name": "version",
+          "type": "Integer",
+          "notNull": true,
+          "defaultValue": 1,
+          "comment": "版本号"
+        },
+        {
+          "name": "systemPrompt",
+          "type": "String",
+          "notNull": true,
+          "comment": "系统提示词(Text)"
+        },
+        {
+          "name": "userPrompt",
+          "type": "String",
+          "notNull": true,
+          "comment": "用户提示词模板(Text)"
+        },
+        {
+          "name": "variables",
+          "type": "Json",
+          "notNull": false,
+          "comment": "支持变量Json"
+        },
+        {
+          "name": "status",
+          "type": "enum",
+          "enumName": "BasicStatus",
+          "notNull": true,
+          "comment": "状态"
+        },
+        {
+          "name": "remark",
+          "type": "String",
+          "length": 255,
+          "notNull": false,
+          "comment": "备注"
+        }
+      ],
+      "uniqueConstraints": [
+        {
+          "name": "uk_cnt_prompt_tpl",
+          "columns": [
+            "featureCode",
+            "version"
+          ],
+          "uniqueScope": "GLOBAL"
+        }
+      ],
+      "apis": [
+        {
+          "name": "paging",
+          "summary": "分页查询(后台)",
+          "path": "/paging",
+          "paramMode": "QUERY",
+          "authRequired": true,
+          "requiredPerms": [
+            "content:prompt:read"
+          ]
+        },
+        {
+          "name": "save",
+          "summary": "新增(后台)",
+          "path": "/save",
+          "paramMode": "ENTITY",
+          "authRequired": true,
+          "requiredPerms": [
+            "content:prompt:create"
+          ]
+        },
+        {
+          "name": "update",
+          "summary": "修改(后台)",
+          "path": "/update",
+          "paramMode": "ENTITY",
+          "authRequired": true,
+          "requiredPerms": [
+            "content:prompt:update"
+          ]
+        },
+        {
+          "name": "delete",
+          "summary": "删除(后台)",
+          "path": "/delete",
+          "paramMode": "IDS",
+          "authRequired": true,
+          "requiredPerms": [
+            "content:prompt:delete"
+          ]
+        },
+        {
+          "name": "getLatest",
+          "summary": "获取某功能最新模板(登录即可)",
+          "path": "/getLatest",
+          "paramMode": "CUSTOM",
+          "dtoName": "GetLatestPromptReq",
+          "authRequired": true,
+          "requiredPerms": [],
+          "params": [
+            {
+              "name": "featureCode",
+              "type": "String",
+              "required": true,
+              "comment": "功能code"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "className": "CntGenerationLog",
+      "tableName": "t_cnt_generation_log",
+      "moduleName": "content",
+      "comment": "生成记录/用量统计",
+      "znName": "生成记录",
+      "fields": [
+        {
+          "name": "userId",
+          "type": "String",
+          "length": 64,
+          "notNull": true,
+          "comment": "用户ID"
+        },
+        {
+          "name": "featureCode",
+          "type": "String",
+          "length": 64,
+          "notNull": true,
+          "comment": "功能code"
+        },
+        {
+          "name": "toneId",
+          "type": "String",
+          "length": 32,
+          "notNull": false,
+          "comment": "语气ID"
+        },
+        {
+          "name": "inputText",
+          "type": "String",
+          "notNull": true,
+          "comment": "输入(Text)"
+        },
+        {
+          "name": "contextText",
+          "type": "String",
+          "notNull": false,
+          "comment": "上下文(Text)"
+        },
+        {
+          "name": "outputText",
+          "type": "String",
+          "notNull": false,
+          "comment": "输出(Text)"
+        },
+        {
+          "name": "modelName",
+          "type": "String",
+          "length": 64,
+          "notNull": false,
+          "comment": "模型名"
+        },
+        {
+          "name": "tokensIn",
+          "type": "Integer",
+          "notNull": true,
+          "defaultValue": 0,
+          "comment": "输入token"
+        },
+        {
+          "name": "tokensOut",
+          "type": "Integer",
+          "notNull": true,
+          "defaultValue": 0,
+          "comment": "输出token"
+        },
+        {
+          "name": "costCents",
+          "type": "Integer",
+          "notNull": true,
+          "defaultValue": 0,
+          "comment": "成本(分)"
+        },
+        {
+          "name": "latencyMs",
+          "type": "Integer",
+          "notNull": true,
+          "defaultValue": 0,
+          "comment": "耗时ms"
+        },
+        {
+          "name": "status",
+          "type": "enum",
+          "enumName": "BasicStatus",
+          "notNull": true,
+          "comment": "状态"
+        },
+        {
+          "name": "remark",
+          "type": "String",
+          "length": 255,
+          "notNull": false,
+          "comment": "备注"
+        }
+      ],
+      "uniqueConstraints": [],
+      "apis": [
+        {
+          "name": "myPaging",
+          "summary": "我的记录分页(登录即可)",
+          "path": "/myPaging",
+          "paramMode": "QUERY",
+          "authRequired": true,
+          "requiredPerms": []
+        },
+        {
+          "name": "paging",
+          "summary": "分页查询(后台)",
+          "path": "/paging",
+          "paramMode": "QUERY",
+          "authRequired": true,
+          "requiredPerms": [
+            "content:log:read"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "app_dir": "app",
+  "app_pkg": "app",
+  "gen_paths": {
+    "enums": "enums",
+    "models": "models",
+    "schemas": "schemas",
+    "services": "services",
+    "api": "api"
+  },
+  "imports": {
+    "base": "app.models.base:Base",
+    "deps": "app.deps:get_db,get_ctx,get_ctx_required,require_perm,provide_service,provide_service_optional",
+    "res": "app.common.res:Res"
+  },
+  "api": {
+    "prefix_template": "/{module}/{entity}",
+    "tag_template": "{module}:{entity}"
+  }
+}

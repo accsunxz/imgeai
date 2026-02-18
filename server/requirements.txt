@@ -1,0 +1,34 @@
+# --- Web 框架 ---
+fastapi
+uvicorn[standard]
+python-multipart
+email-validator
+
+greenlet
+# --- 数据库 & ORM ---
+sqlalchemy
+pydantic
+pydantic-settings
+# ⚠️ [修改] SQLite 异步驱动 (替代 asyncpg)
+aiosqlite
+
+# --- 安全 & 鉴权 ---
+python-jose[cryptography]
+passlib[bcrypt]
+
+# --- AI & LangGraph ---
+langgraph
+langchain
+langchain-openai
+# ⚠️ [新增] 社区包，包含大量工具和向量库支持
+langchain-community
+
+# --- 如果你想把 AI 记忆也存在 SQLite 里，加这个 ---
+# langgraph-checkpoint-sqlite
+
+
+
+# --- 工具 & 类型 ---
+typing-extensions
+httpx
+python-dotenv  # ⚠️ [推荐] 用来读取 .env 里的 API KEY
