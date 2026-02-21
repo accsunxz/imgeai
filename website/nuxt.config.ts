@@ -21,7 +21,21 @@ export default defineNuxtConfig({
         // 2. 引入持久化插件 (注意这里通常不需要写全称，看下文配置)
         'pinia-plugin-persistedstate/nuxt',
     ],
-
+    nitro: {
+        // 这里的配置会让所有以 /agent 开头的请求，在服务端自动转发到 8000 端口
+        devProxy: {
+            '/agent': {
+                target: 'http://127.0.0.1:8000/agent',
+                changeOrigin: true,
+            }
+        }
+    },
+    runtimeConfig: {
+        public: {
+            // 生产环境下改为真实域名，开发环境走代理
+            apiBase: process.env.NODE_ENV === 'development' ? '/agent' : 'https://api.yourdomain.com/agent'
+        }
+    },
 
 // 3. Pinia 持久化全局配置
     piniaPersistedstate: {
