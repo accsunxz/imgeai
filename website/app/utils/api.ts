@@ -1,4 +1,5 @@
-type ApiResult<T> = {
+// utils/api.ts
+export type ApiResult<T> = {
     code: string | number;
     message: string;
     body: T;
@@ -15,5 +16,14 @@ export async function apiGet<T>(path: string, params?: Record<string, any>) {
         baseURL,
         method: "GET",
         params,
+    });
+}
+
+export async function apiPost<T>(path: string, body?: any) {
+    const baseURL = getApiBase();
+    return await $fetch<ApiResult<T>>(path, {
+        baseURL,
+        method: "POST",
+        body,
     });
 }
