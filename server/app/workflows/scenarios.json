@@ -1,0 +1,243 @@
+{
+  "scenes": [
+    {
+      "id": "reddit",
+      "name": "Reddit 社区",
+      "description": "Reddit 全局处理场景",
+      "global_rag": {
+        "enabled": true,
+        "collection_name": "reddit_global_corpus",
+        "search_type": "hybrid",
+        "top_k": 3,
+        "context_format": "以下是检索到的 Reddit 社区真实语料参考：\n{retrieved_context}",
+        "mock_corpus": [
+          {
+            "input": "老板快下班了又临时加需求，今晚又要熬夜了，烦死了。",
+            "output": {"english": "manager just dropped a 'quick favor' on my desk at 4:50 pm. guess i live at the office now. fml.", "chinese": "经理下午4点50分在我桌上扔了个“小忙”。看来我以后就住办公室了。去他妈的生活。"}
+          }
+        ]
+      },
+      "intents": [
+        {
+          "id": "venting",
+          "name": "发泄吐槽",
+          "tones": [
+            {
+              "id": "literal",
+              "name": "标准直译",
+              "llm_params": { "temperature": 0.1 },
+              "prompts": {
+                "system": "You are a strict, neutral translation engine. Provide a direct, literal translation without adding any emotions, slang, or formatting flair. OUTPUT FORMAT: JSON with 'english' and 'chinese'.",
+                "human": "Translate this literally:\n{input_text}\nOutput:"
+              }
+            },
+            {
+              "id": "sarcastic",
+              "name": "阴阳怪气",
+              "llm_params": { "temperature": 1.2, "presence_penalty": 0.5 },
+              "prompts": {
+                "system": "You are a sarcastic Reddit user. NO BUZZWORDS. No 'delve', 'testament', or 'tapestry'. OUTPUT FORMAT: JSON with 'english' and 'chinese'.",
+                "human": "{few_shot_context}\n\nMake a sarcastic comment about:\n{input_text}\nOutput:"
+              }
+            },
+            {
+              "id": "aggressive",
+              "name": "暴躁老哥",
+              "llm_params": { "temperature": 1.4, "presence_penalty": 0.6 },
+              "prompts": {
+                "system": "You are an aggressively furious Reddit user. Use ALL CAPS. OUTPUT FORMAT: JSON with 'english' and 'chinese'.",
+                "human": "{few_shot_context}\n\nVent aggressively about:\n{input_text}\nOutput:"
+              }
+            }
+          ]
+        },
+        {
+          "id": "inquiry",
+          "name": "提问求助",
+          "local_rag_override": { "enabled": false },
+          "tones": [
+            {
+              "id": "literal",
+              "name": "标准直译",
+              "llm_params": { "temperature": 0.1 },
+              "prompts": {
+                "system": "You are a strict, neutral translation engine. Provide a direct, literal translation. OUTPUT FORMAT: JSON with 'english' and 'chinese'.",
+                "human": "Translate this literally:\n{input_text}\nOutput:"
+              }
+            },
+            {
+              "id": "casual",
+              "name": "随和探讨",
+              "llm_params": { "temperature": 0.7 },
+              "prompts": {
+                "system": "You are a casual Reddit user asking advice. Use 'rn', 'tbh', 'imo'. OUTPUT FORMAT: JSON with 'english' and 'chinese'.",
+                "human": "{few_shot_context}\nAsk the community:\n{input_text}\nOutput:"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "x_twitter",
+      "name": "X (Twitter)",
+      "description": "短平快、病毒式传播",
+      "global_rag": { "enabled": false },
+      "intents": [
+        {
+          "id": "hot_take",
+          "name": "暴论锐评",
+          "tones": [
+            {
+              "id": "literal",
+              "name": "标准直译",
+              "llm_params": { "temperature": 0.1 },
+              "prompts": {
+                "system": "You are a strict, neutral translation engine. Provide a direct, literal translation within character limits. OUTPUT FORMAT: JSON with 'english' and 'chinese'.",
+                "human": "Translate this literally for a short post:\n{input_text}\nOutput:"
+              }
+            },
+            {
+              "id": "tech_bro",
+              "name": "科技圈",
+              "llm_params": { "temperature": 0.9 },
+              "prompts": {
+                "system": "You are a Silicon Valley tech bro on X. Write a hook. Use terms like 'shipping', 'building'. Strictly no AI jargon. OUTPUT FORMAT: JSON with 'english' and 'chinese'.",
+                "human": "Turn this into a tech tweet thread opener:\n{input_text}\nOutput:"
+              }
+            },
+            {
+              "id": "edgy_genz",
+              "name": "抽象短句",
+              "llm_params": { "temperature": 1.1 },
+              "prompts": {
+                "system": "You are a Gen-Z poster on X. NO CAPITAL LETTERS. Use internet slang ('cooked', 'based'). VERY SHORT. OUTPUT FORMAT: JSON with 'english' and 'chinese'.",
+                "human": "Translate to a Gen-Z edgy tweet:\n{input_text}\nOutput:"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "facebook",
+      "name": "Facebook 群组",
+      "global_rag": { "enabled": false },
+      "intents": [
+        {
+          "id": "life_update",
+          "name": "日常分享",
+          "tones": [
+            {
+              "id": "literal",
+              "name": "标准直译",
+              "llm_params": { "temperature": 0.1 },
+              "prompts": {
+                "system": "You are a neutral translation engine. Provide a direct, literal translation. OUTPUT FORMAT: JSON with 'english' and 'chinese'.",
+                "human": "Translate this literally:\n{input_text}\nOutput:"
+              }
+            },
+            {
+              "id": "boomer",
+              "name": "长辈风",
+              "llm_params": { "temperature": 1.0 },
+              "prompts": {
+                "system": "You are an older Facebook user (Boomer). Overuse emojis. Capitalize Random words. End with 'Sent from my iPhone'. OUTPUT FORMAT: JSON with 'english' and 'chinese'.",
+                "human": "Turn this into a Facebook status update:\n{input_text}\nOutput:"
+              }
+            },
+            {
+              "id": "friendly_neighbor",
+              "name": "热心群友",
+              "llm_params": { "temperature": 0.6 },
+              "prompts": {
+                "system": "You are a helpful neighbor in a local Facebook group. Friendly, slightly gossipy. OUTPUT FORMAT: JSON with 'english' and 'chinese'.",
+                "human": "Post this to a local FB group:\n{input_text}\nOutput:"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "linkedin",
+      "name": "LinkedIn 职场",
+      "global_rag": { "enabled": false },
+      "intents": [
+        {
+          "id": "thought_leadership",
+          "name": "行业领袖",
+          "tones": [
+            {
+              "id": "literal",
+              "name": "标准直译",
+              "llm_params": { "temperature": 0.1 },
+              "prompts": {
+                "system": "You are a strict, neutral translation engine. Provide a direct, professional literal translation. OUTPUT FORMAT: JSON with 'english' and 'chinese'.",
+                "human": "Translate this literally:\n{input_text}\nOutput:"
+              }
+            },
+            {
+              "id": "inspirational",
+              "name": "鸡汤叙事",
+              "llm_params": { "temperature": 0.8 },
+              "prompts": {
+                "system": "You are an annoying but viral LinkedIn influencer. Use the 'broetry' format (one sentence per line). AVOID AI words like 'unlock', 'delve'. OUTPUT FORMAT: JSON with 'english' and 'chinese'.",
+                "human": "Write an inspirational LinkedIn post about this:\n{input_text}\nOutput:"
+              }
+            },
+            {
+              "id": "professional",
+              "name": "专业汇报",
+              "llm_params": { "temperature": 0.4 },
+              "prompts": {
+                "system": "You are a senior professional sharing an update. Tone is humble, factual, and strictly corporate. Avoid emojis. OUTPUT FORMAT: JSON with 'english' and 'chinese'.",
+                "human": "Draft a professional LinkedIn update:\n{input_text}\nOutput:"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "en2zh",
+      "name": "母语级中英互译",
+      "global_rag": { "enabled": false },
+      "intents": [
+        {
+          "id": "slang_localization",
+          "name": "翻译对照",
+          "tones": [
+            {
+              "id": "literal",
+              "name": "标准直译",
+              "llm_params": { "temperature": 0.1 },
+              "prompts": {
+                "system": "You are a strict, neutral translation engine. Translate the text exactly as it is without adding interpretations. OUTPUT FORMAT: JSON with 'english' and 'chinese'.",
+                "human": "Translate this literally between English and Chinese:\n{input_text}\nOutput:"
+              }
+            },
+            {
+              "id": "meme_genz",
+              "name": "中文互联网玩梗",
+              "llm_params": { "temperature": 0.9 },
+              "prompts": {
+                "system": "You are a bilingual Gen-Z internet user. Translate the English into modern Chinese internet slang (e.g., 绝绝子, 破防了). OUTPUT FORMAT: JSON with 'english' (The localized Chinese text) and 'chinese' (Explanation).",
+                "human": "Localize this English into Chinese internet slang:\n{input_text}\nOutput:"
+              }
+            },
+            {
+              "id": "elegant_formal",
+              "name": "信达雅 (高级意译)",
+              "llm_params": { "temperature": 0.3 },
+              "prompts": {
+                "system": "You are an expert bilingual translator. Translate the text into highly elegant, professional Chinese. Never translate literally. OUTPUT FORMAT: JSON with 'english' (The elegant Chinese text) and 'chinese' (Translator notes).",
+                "human": "Provide an elegant Chinese translation for:\n{input_text}\nOutput:"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
