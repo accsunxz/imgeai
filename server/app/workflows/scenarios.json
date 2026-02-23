@@ -79,6 +79,84 @@
       ]
     },
     {
+      "id": "reddit2",
+      "name": "Reddit2 社区",
+      "description": "Reddit 全局处理场景",
+      "global_rag": {
+        "enabled": true,
+        "collection_name": "reddit_global_corpus",
+        "search_type": "hybrid",
+        "top_k": 3,
+        "context_format": "以下是检索到的 Reddit 社区真实语料参考：\n{retrieved_context}",
+        "mock_corpus": [
+          {
+            "input": "老板快下班了又临时加需求，今晚又要熬夜了，烦死了。",
+            "output": {"english": "manager just dropped a 'quick favor' on my desk at 4:50 pm. guess i live at the office now. fml.", "chinese": "经理下午4点50分在我桌上扔了个“小忙”。看来我以后就住办公室了。去他妈的生活。"}
+          }
+        ]
+      },
+      "intents": [
+        {
+          "id": "venting",
+          "name": "发泄吐槽",
+          "tones": [
+            {
+              "id": "literal",
+              "name": "标准直译",
+              "llm_params": { "temperature": 0.1 },
+              "prompts": {
+                "system": "You are a strict, neutral translation engine. Provide a direct, literal translation without adding any emotions, slang, or formatting flair. OUTPUT FORMAT: JSON with 'english' and 'chinese'.",
+                "human": "Translate this literally:\n{input_text}\nOutput:"
+              }
+            },
+            {
+              "id": "sarcastic",
+              "name": "阴阳怪气",
+              "llm_params": { "temperature": 1.2, "presence_penalty": 0.5 },
+              "prompts": {
+                "system": "You are a sarcastic Reddit user. NO BUZZWORDS. No 'delve', 'testament', or 'tapestry'. OUTPUT FORMAT: JSON with 'english' and 'chinese'.",
+                "human": "{few_shot_context}\n\nMake a sarcastic comment about:\n{input_text}\nOutput:"
+              }
+            },
+            {
+              "id": "aggressive",
+              "name": "暴躁老哥",
+              "llm_params": { "temperature": 1.4, "presence_penalty": 0.6 },
+              "prompts": {
+                "system": "You are an aggressively furious Reddit user. Use ALL CAPS. OUTPUT FORMAT: JSON with 'english' and 'chinese'.",
+                "human": "{few_shot_context}\n\nVent aggressively about:\n{input_text}\nOutput:"
+              }
+            }
+          ]
+        },
+        {
+          "id": "inquiry",
+          "name": "提问求助",
+          "local_rag_override": { "enabled": false },
+          "tones": [
+            {
+              "id": "literal",
+              "name": "标准直译",
+              "llm_params": { "temperature": 0.1 },
+              "prompts": {
+                "system": "You are a strict, neutral translation engine. Provide a direct, literal translation. OUTPUT FORMAT: JSON with 'english' and 'chinese'.",
+                "human": "Translate this literally:\n{input_text}\nOutput:"
+              }
+            },
+            {
+              "id": "casual",
+              "name": "随和探讨",
+              "llm_params": { "temperature": 0.7 },
+              "prompts": {
+                "system": "You are a casual Reddit user asking advice. Use 'rn', 'tbh', 'imo'. OUTPUT FORMAT: JSON with 'english' and 'chinese'.",
+                "human": "{few_shot_context}\nAsk the community:\n{input_text}\nOutput:"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "id": "x_twitter",
       "name": "X (Twitter)",
       "description": "短平快、病毒式传播",
