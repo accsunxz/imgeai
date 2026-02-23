@@ -5,9 +5,9 @@ from fastapi import APIRouter
 
 
 
-from app.api.agent.reddit import router as agent_reddit_router
+from app.api.agent.style_transfer_router import router as style_transfer_router
 
 api_router = APIRouter()
 
 
-api_router.include_router(agent_reddit_router)
+api_router.include_router(style_transfer_router)
