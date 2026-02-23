@@ -25,6 +25,7 @@ export interface TranslatePayload {
     intent_id: string;
     tone_id: string;
     text: string;
+    api_key?: string;
 }
 
 export interface TranslateResult {
